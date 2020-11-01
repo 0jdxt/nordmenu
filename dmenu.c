@@ -249,7 +249,8 @@ static void grabkeyboard(void) {
     int i;
 
     if (embed) return;
-    /* try to grab keyboard, we may have to wait for another process to ungrab
+    /* try to grab keyboard, we may have to wait for another process to
+     * ungrab
      */
     for (i = 0; i < 1000; i++) {
         if (XGrabKeyboard(dpy, DefaultRootWindow(dpy), True, GrabModeAsync,
@@ -303,10 +304,12 @@ void fuzzymatch(void) {
             if (eidx != -1) {
                 /* compute distance */
                 /* add penalty if match starts late (log(sidx+2))
-                 * add penalty for long a match without many matching characters
+                 * add penalty for long a match without many matching
+                 * characters
                  */
                 it->distance = log(sidx + 2) + (double)(eidx - sidx - text_len);
-                /* fprintf(stderr, "distance %s %f\n", it->text, it->distance);
+                /* fprintf(stderr, "distance %s %f\n", it->text,
+                 * it->distance);
                  */
                 appenditem(it, &matches, &matchend);
                 number_of_matches++;
@@ -399,7 +402,8 @@ static void match(void) {
 
 static void insert(const char *str, ssize_t n) {
     if (strlen(text) + n > sizeof text - 1) return;
-    /* move existing text out of the way, insert new text, and update cursor */
+    /* move existing text out of the way, insert new text, and update cursor
+     */
     memmove(&text[cursor + n], &text[cursor], sizeof text - cursor - MAX(n, 0));
     if (n > 0) memcpy(&text[cursor], str, n);
     cursor += n;
@@ -409,7 +413,8 @@ static void insert(const char *str, ssize_t n) {
 static size_t nextrune(int inc) {
     ssize_t n;
 
-    /* return location of next utf8 rune in the given direction (+1 or -1) */
+    /* return location of next utf8 rune in the given direction (+1 or -1)
+     */
     for (n = cursor + inc; n + inc >= 0 && (text[n] & 0xc0) == 0x80; n += inc)
         ;
     return n;
@@ -772,7 +777,8 @@ static void setup(void) {
                         i = j;
                     }
         }
-        /* no focused window is on screen, so use pointer location instead */
+        /* no focused window is on screen, so use pointer location instead
+         */
         if (mon < 0 && !area &&
             XQueryPointer(dpy, root, &dw, &dw, &x, &y, &di, &di, &du))
             for (i = 0; i < n; i++)
@@ -827,7 +833,8 @@ static void setup(void) {
 
 static void usage(void) {
     fputs(
-        "usage: dmenu [-bfiv] [-l lines] [-p prompt] [-fn font] [-m monitor]\n"
+        "usage: dmenu [-bfiv] [-l lines] [-p prompt] [-fn font] [-m "
+        "monitor]\n"
         "             [-h height]\n"
         "             [-nb color] [-nf color] [-sb color] [-sf color] [-w "
         "windowid]\n",
@@ -869,10 +876,9 @@ int main(int argc, char *argv[]) {
             fonts[0] = argv[++i];
         else if (!strcmp(argv[i], "-h")) { /* minimum height of one menu line */
             lineheight = atoi(argv[++i]);
-            lineheight = MAX(
-                lineheight,
-                8); /* reasonable default in case of value too small/negative */
-        } else if (!strcmp(argv[i], "-nb")) /* normal background color */
+            lineheight = MAX(lineheight, 8); /* reasonable default in case of
+                                                value too small/negative */
+        } else if (!strcmp(argv[i], "-nb"))  /* normal background color */
             colors[SchemeNorm][ColBg] = argv[++i];
         else if (!strcmp(argv[i], "-nf")) /* normal foreground color */
             colors[SchemeNorm][ColFg] = argv[++i];
