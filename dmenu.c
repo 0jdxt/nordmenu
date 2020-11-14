@@ -268,8 +268,9 @@ int compare_distance(const void *a, const void *b) {
     if (!db) return 1;
     if (!da) return -1;
 
-    return da->distance == db->distance ? 0
-                                        : da->distance < db->distance ? -1 : 1;
+    return da->distance == db->distance  ? 0
+           : da->distance < db->distance ? -1
+                                         : 1;
 }
 
 void fuzzymatch(void) {
