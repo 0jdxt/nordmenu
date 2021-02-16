@@ -22,3 +22,15 @@ Afterwards enter the following command to build and install dmenu
 Running dmenu
 -------------
 See the man page for details.
+
+Patches
+-------
+- border
+- case insensitive
+- width
+- line height
+- centered
+- number of results
+- grid + navigation
+- fuzzy search + highlight
+
