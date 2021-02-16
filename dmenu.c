@@ -1018,8 +1018,8 @@ static void setup(void) {
 
 static void usage(void) {
     fputs(
-        "usage: dmenu [-bfiv] [-l lines] [-p prompt] [-fn font] [-m monitor]\n"
-        "             [-h height] [-z width] [-w windowid]\n"
+        "usage: dmenu [-bfiv] [-l lines] [-g columns] [-p prompt] [-fn font] \n"
+        "             [-m monitor] [-h height] [-z width] [-w windowid]\n"
         "             [-nb color] [-nf color] [-sb color] [-sf color]\n"
         "             [-nhb color] [-nhf color] [-shb color] [-shf color]\n",
         stderr);
