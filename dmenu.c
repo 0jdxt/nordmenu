@@ -205,9 +205,10 @@ static void drawmenu(void) {
     if (lines > 0) {
         /* draw grid */
         int i = 0;
+        int tot_width = mw - x + promptw;
         for (item = curr; item != next; item = item->right, i++)
-            drawitem(item, ((i / lines) * ((mw - x) / columns)),
-                     y + (((i % lines) + 1) * bh), (mw - x) / columns);
+            drawitem(item, ((i / lines) * (tot_width / columns)),
+                     y + (((i % lines) + 1) * bh), tot_width / columns);
     } else if (matches) {
         /* draw horizontal list */
         x += inputw;
@@ -967,8 +968,7 @@ static void setup(void) {
             for (i = 0; i < n; i++)
                 if (INTERSECT(x, y, 1, 1, info[i])) break;
 
-        mw = (dmw > 0 ? dmw
-                      : MIN(MAX(max_textw() + promptw, 100), info[i].width));
+        mw = (dmw > 0 ? dmw : MIN(MAX(max_textw(), 100), info[i].width));
         x = info[i].x_org + ((info[i].width - mw) / 2);
         y = info[i].y_org + ((info[i].height - mh) / 2);
         XFree(info);
