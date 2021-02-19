@@ -25,6 +25,7 @@ See the man page for details.
 
 Patches
 -------
+- nord colours
 - border
 - case insensitive
 - width
@@ -33,4 +34,3 @@ Patches
 - number of results
 - grid + navigation
 - fuzzy search + highlight
-
