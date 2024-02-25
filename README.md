@@ -12,6 +12,14 @@ In order to build dmenu you need the Xlib header files.
 
 Installation
 ------------
+### AUR
+nordmenu is available in the AUR
+
+```bash
+$ paru -S nordmenu
+```
+
+### Manual
 Edit config.mk to match your local setup (dmenu is installed into
 the /usr/local namespace by default).
 
