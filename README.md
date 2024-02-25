@@ -1,5 +1,7 @@
-dmenu - dynamic menu
+nordmenu
 ====================
+nordmenu is my fork of dmenu by suckless.
+
 dmenu is an efficient dynamic menu for X.
 
 
