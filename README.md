@@ -15,9 +15,7 @@ Installation
 ### AUR
 nordmenu is available in the AUR
 
-```bash
-$ paru -S nordmenu
-```
+    paru -S nordmenu
 
 ### Manual
 Edit config.mk to match your local setup (dmenu is installed into
