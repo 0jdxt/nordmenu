@@ -24,7 +24,6 @@
 #define INTERSECT(x, y, w, h, r)                                            \
     (MAX(0, MIN((x) + (w), (r).x_org + (r).width) - MAX((x), (r).x_org)) && \
      MAX(0, MIN((y) + (h), (r).y_org + (r).height) - MAX((y), (r).y_org)))
-#define LENGTH(X) (sizeof X / sizeof X[0])
 #define TEXTW(X) (drw_fontset_getwidth(drw, (X)) + lrpad)
 #define NUMBERSMAXDIGITS 100
 #define NUMBERSBUFSIZE (NUMBERSMAXDIGITS * 2) + 1
@@ -451,6 +450,7 @@ static void keypress(XKeyEvent *ev) {
     int len;
     KeySym ksym;
     Status status;
+    int i;
 
     struct item *tmpsel;
     bool offscreen = false;
@@ -879,31 +879,6 @@ static void paste(void) {
         XFree(p);
     }
     drawmenu();
-}
-
-static void readstdin(void) {
-    char buf[sizeof text], *p;
-    size_t i, imax = 0, size = 0;
-    unsigned int tmpmax = 0;
-
-    /* read each line from stdin and add it to the item list */
-    for (i = 0; fgets(buf, sizeof buf, stdin); i++) {
-        if (i + 1 >= size / sizeof *items)
-            if (!(items = realloc(items, (size += BUFSIZ))))
-                die("cannot realloc %u bytes:", size);
-        if ((p = strchr(buf, '\n'))) *p = '\0';
-        if (!(items[i].text = strdup(buf)))
-            die("cannot strdup %u bytes:", strlen(buf) + 1);
-        items[i].out = 0;
-        drw_font_getexts(drw->fonts, buf, strlen(buf), &tmpmax, NULL);
-        if (tmpmax > inputw) {
-            inputw = tmpmax;
-            imax = i;
-        }
-    }
-    if (items) items[i].text = NULL;
-    inputw = items ? TEXTW(items[imax].text) : 0;
-    lines = MIN(lines, i);
 }
 
 static void run(void) {
