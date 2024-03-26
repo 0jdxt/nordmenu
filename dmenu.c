@@ -72,6 +72,11 @@ static Clr *scheme[SchemeLast];
 static int (*fstrncmp)(const char *, const char *, size_t) = strncmp;
 static char *(*fstrstr)(const char *, const char *) = strstr;
 
+static unsigned int textw_clamp(const char *str, unsigned int n) {
+    unsigned int w = drw_fontset_getwidth_clamp(drw, str, n) + lrpad;
+    return MIN(w, n);
+}
+
 static void appenditem(struct item *item, struct item **list,
                        struct item **last) {
     if (*last)
@@ -93,9 +98,9 @@ static void calcoffsets(void) {
         n = mw - (promptw + inputw + TEXTW("<") + TEXTW(">"));
     /* calculate which items will begin the next page and previous page */
     for (i = 0, next = curr; next; next = next->right)
-        if ((i += (lines > 0) ? bh : MIN(TEXTW(next->text), n)) > n) break;
+        if ((i += (lines > 0) ? bh : textw_clamp(next->text, n)) > n) break;
     for (i = 0, prev = curr; prev && prev->left; prev = prev->left)
-        if ((i += (lines > 0) ? bh : MIN(TEXTW(prev->left->text), n)) > n)
+        if ((i += (lines > 0) ? bh : textw_clamp(prev->left->text, n)) > n)
             break;
 }
 
@@ -111,6 +116,8 @@ static void cleanup(void) {
 
     XUngrabKey(dpy, AnyKey, AnyModifier, root);
     for (i = 0; i < SchemeLast; i++) free(scheme[i]);
+    for (i = 0; items && items[i].text; ++i) free(items[i].text);
+    free(items);
     drw_free(drw);
     XSync(dpy, False);
     XCloseDisplay(dpy);
@@ -440,11 +447,11 @@ static void movewordedge(int dir) {
 }
 
 static void keypress(XKeyEvent *ev) {
-    char buf[32];
+    char buf[64];
     int len;
     KeySym ksym;
     Status status;
-    int i;
+
     struct item *tmpsel;
     bool offscreen = false;
 
@@ -600,6 +607,7 @@ static void keypress(XKeyEvent *ev) {
             cleanup();
             exit(1);
         case XK_Home:
+        case XK_KP_Home:
             if (sel == matches) {
                 cursor = 0;
                 break;
@@ -835,6 +843,27 @@ static void mousemove(XEvent *e) {
     }
 }
 
+static void readstdin(void) {
+    char *line = NULL;
+    size_t i, itemsiz = 0, linesiz = 0;
+    ssize_t len;
+    /* read each line from stdin and add it to the item list */
+    for (i = 0; (len = getline(&line, &linesiz, stdin)) != -1; i++) {
+        if (i + 1 >= itemsiz) {
+            itemsiz += 256;
+            if (!(items = realloc(items, itemsiz * sizeof(*items))))
+                die("cannot realloc %zu bytes:", itemsiz * sizeof(*items));
+        }
+        if (line[len - 1] == '\n') line[len - 1] = '\0';
+        if (!(items[i].text = strdup(line))) die("strdup:");
+
+        items[i].out = 0;
+    }
+    free(line);
+    if (items) items[i].text = NULL;
+    lines = MIN(lines, i);
+}
+
 static void paste(void) {
     char *p, *q;
     int di;
@@ -966,7 +995,7 @@ static void setup(void) {
         if (mon < 0 && !area &&
             XQueryPointer(dpy, root, &dw, &dw, &x, &y, &di, &di, &du))
             for (i = 0; i < n; i++)
-                if (INTERSECT(x, y, 1, 1, info[i])) break;
+                if (INTERSECT(x, y, 1, 1, info[i]) != 0) break;
 
         mw = (dmw > 0 ? dmw : MIN(MAX(max_textw(), 100), info[i].width));
         x = info[i].x_org + ((info[i].width - mw) / 2);
@@ -989,8 +1018,8 @@ static void setup(void) {
     swa.background_pixel = scheme[SchemeNorm][ColBg].pixel;
     swa.event_mask = ExposureMask | KeyPressMask | VisibilityChangeMask |
                      ButtonPressMask | PointerMotionMask;
-    win = XCreateWindow(dpy, parentwin, x, y, mw, mh, border_width,
-                        CopyFromParent, CopyFromParent, CopyFromParent,
+    win = XCreateWindow(dpy, root, x, y, mw, mh, border_width, CopyFromParent,
+                        CopyFromParent, CopyFromParent,
                         CWOverrideRedirect | CWBackPixel | CWEventMask, &swa);
     XSetWindowBorder(dpy, win, scheme[SchemeSel][ColBg].pixel);
     XSetClassHint(dpy, win, &ch);
@@ -1004,6 +1033,7 @@ static void setup(void) {
 
     XMapRaised(dpy, win);
     if (embed) {
+        XReparentWindow(dpy, win, parentwin, x, y);
         XSelectInput(dpy, parentwin, FocusChangeMask | SubstructureNotifyMask);
         if (XQueryTree(dpy, parentwin, &dw, &w, &dws, &du) && dws) {
             for (i = 0; i < du && dws[i] != win; ++i)
@@ -1017,13 +1047,12 @@ static void setup(void) {
 }
 
 static void usage(void) {
-    fputs(
-        "usage: dmenu [-bfiv] [-l lines] [-g columns] [-p prompt] [-fn font] \n"
+    die("usage: dmenu [-bfiv] [-l lines] [-g columns] [-p prompt] [-fn "
+        "font] \n"
         "             [-m monitor] [-h height] [-z width] [-w windowid]\n"
         "             [-nb color] [-nf color] [-sb color] [-sf color]\n"
-        "             [-nhb color] [-nhf color] [-shb color] [-shf color]\n",
-        stderr);
-    exit(1);
+        "             [-nhb color] [-nhf color] [-shb color] [-shf "
+        "color]\n");
 }
 
 int main(int argc, char *argv[]) {
